@@ -78,6 +78,12 @@ def total_cost(no_comp, no_turb, regencost):
     cost = no_comp*cst_no_compressor + no_turb*cst_trbn + 30000000 + regencost
     return cost
 
+def life_cost(eta_th):
+    total_life_power =  80000000*60*60*60*365
+    fuel_cost = 900
+     total_life_heat = eta_th * total_life_power
+     fuel_cost = total_life_heat*fuel_cost
+     return fuel_cost
 
 max = 5 
 print(cycle(1,1,0))
