@@ -73,6 +73,11 @@ class power_plant:
         
         output = (nwout/qin)
         return output
+    
+def total_cost(no_comp, no_turb, regencost):
+    cost = no_comp*cst_no_compressor + no_turb*cst_trbn + 30000000 + regencost
+    return cost
+
 
 max = 5 
 print(cycle(1,1,0))
