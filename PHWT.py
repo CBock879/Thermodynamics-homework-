@@ -5,8 +5,12 @@ Created on Sun Mar 25 12:10:55 2018
 @author: Chris
 """
 
+
 import numpy as np
 import matplotlib.pyplot as pyp
+import matplotlib
+
+
 
 #class regen:
 #    cost = 100
@@ -38,31 +42,30 @@ cst_reheater =  1
 #no_turb: number of no_turbines
 #rgn_ep regenerator epsilon ( effectivnes)
 
-t1 = 27 + 273.13                #t1 = temperature 1
+t1 = 27.0 + 273.13                #t1 = temperature 1
 t3 = 1150.0 + 273.13            #t3: temperature 3
 Pr = 9.0                        #Pr = pressure ratio
 def power_plant(no_comp, no_turb, rgn_ep):
-    
-     
     # runs through each of the stages of the no_compression
     Prs  = Pr ** ( 1.0/ no_comp)    #Prs: pressure ratio for individual stages
     
-    t2 = (Prs)**((k-1)/k) *t1       #t2: tempature 2
+    t2 = (Prs)**((k-1.0)/k) *t1       #t2: tempature 2
     win = (t2-t1) * Cp              #win: work in
     nwin = win * no_comp
     
-    
+    T[1] = t2
+     
     # find qin from inital heat addition
     qin = (t3 - t2) * Cp            #qin: heat input 
 
     #find work extracted and heat needed for reheat
     t4 = t3 * (1/Prs)**((k-1)/k)    #t4: temperature 4
+    T[3] = t4 
     print(t4)
-    wout = (t3-t4) * Cp             #wout: work out 
+    wout = (t3-t4) * Cp *no_turb             #wout: work out 
     if( no_turb > 1):
-        qin = qin +  wout * (no_turb - 1)
-    
-    nwout = (wout * no_turb) - nwin
+        qin = qin +  (wout/no_turb) * (no_turb - 1)
+    nwout = wout * - nwin
     
     #find heat regained from regenerator
     q_regenable = (t4-t2)*Cp        # q_regnenable: heat able to be regenerated
@@ -75,12 +78,12 @@ def power_plant(no_comp, no_turb, rgn_ep):
     return output
     
 def total_cost(no_comp, no_turb, regencost):
-    cost = no_comp*cst_no_compressor + no_turb*cst_trbn + 5500000 + regencost
+    cost = no_comp*cst_no_compressor + no_turb*cst_trbn + 5500000.0 + regencost
     return cost
 
 #finds the total total cost of fuel for the lifetime of the turbine
 def life_cost(eta_th):
-    total_life_power =  4000000*60*60*24*365*20
+    total_life_power =  4000000.0*60.0*60.0*24.0*365.0*20.0
     fuel_cost_per_unit = 0.28
     heat_per_unit = 52200000.0
     total_life_heat =  total_life_power/eta_th
@@ -89,20 +92,32 @@ def life_cost(eta_th):
 
 
 max = 5 
-levels =  [0,1,2,3,4,5]
-print(power_plant(1,1,0))
-effs = np.zeros([max,max])
-costs = np.zeros([max,max])
+
+
+
+#levels =  [0,1,2,3,4,5]
+#print(power_plant(1.0,1.0,0.0))
+#effs = np.zeros([max,max])
+#costs = np.zeros([max,max])
+#for i in range(1,max):
+#    for j in range(1,max):
+#        effs[i,j] = power_plant(i,j,0.6)
+#        costs[i,j] = total_cost(i,j,5000.0) + life_cost(effs[i,j])
+
+
+lin_eff  = np.zeros([max])      
 for i in range(1,max):
-    for j in range(1,max):
-        effs[i,j] = power_plant(i,j,0.6)
-        costs[i,j] = total_cost(i,j,5000) + life_cost(effs[i,j])
-        
+       lin_eff[i] = power_plant(i,i,0.6)
 
+p1 = pyp.figure(1)
 pyp.contourf(costs, 100, vmin=0)
-#pyp.contourf(effs, 100)
-
-
+p2 = pyp.figure(2)
+pyp.contourf(effs, 100)
+p3 = pyp.figure(3)
+pyp.plot(lin_eff)
+p1.show()
+p2.show()
+p3.show()
 
         
         
