@@ -22,10 +22,6 @@ import matplotlib.pyplot as pyp
 #        ratio = effect/cost
 
 
-                            #Specific heat ratio
-cst_trbn= 1100000                   #Cost of turbine
-cst_no_compressor  = 400000        #Cost of compressor 
-cst_reheater =  1   
 
 
 regen_epsilon = [0.5,0.7,0.8,0.9,0.96,0.98]
@@ -116,69 +112,74 @@ def power_plant(no_comp, no_turb, rgn_ep,t1,t3,P1,Pr):
     q_regenable = (t4-t2)*Cp        # q_regnenable: heat able to be regenerated
     q_regen = q_regenable*rgn_ep    # q_regen: heat regenerated
      
-   # print((t3-t2)*Cp)
     #accounts for heat regenerated 
     qin = qin - q_regen
+    
     #find net work 
-    #pyp.plot(T,P)
     nwout = wout - win 
     
-    
-    #print(nwout)
-#   print(win)
-    #print(qin)
-    
     output = float(nwout/qin)
-    #pyp.plot(T,P)
-    #print()
-    
     return output
     
+
+
 def total_cost(no_comp, no_turb, regencost):
+    cst_trbn= 1100000                   #Cost of turbine
+    cst_no_compressor  = 400000        #Cost of compressor   
     cost = no_comp*cst_no_compressor + no_turb*cst_trbn + 5500000.0 + regencost
     return cost
+
+
 
 
 #finds the total total cost of fuel for the lifetime of the turbine
 def life_cost(eta_th):
     
+    #total amount of energy (J) power plant puts out in life
     total_life_power =  4000000.0*60.0*60.0*24.0*365.0*20.0
+    
+    #fuel properties
     fuel_cost_per_unit = 0.28
     heat_per_unit = 52200000.0
+    
+    #finds total lifetime fuel cost of power plant
     total_life_heat =  total_life_power/eta_th
     fuel_cost = (total_life_heat/heat_per_unit)*fuel_cost_per_unit
     return fuel_cost
 
 
-max = 5
-levels =  [0,1,2,3,4,5]
-#print(power_plant(1.0,1.0,0.81))
 
 effs = np.zeros([max,max],dtype=float)
 costs = np.zeros([max,max],dtype = float )
-#for i in range(1,max):
-#    for j in range(1,max):
-#        effs[i,j] = power_plant(i,j,0.6,300.0,1400.0,100.0,9.0)
-#        
-#        costs[i,j] = total_cost(i,j,5000.0) + life_cost(effs[i,j])
-#     
+
+
 cst_min = 9000000000000000.0
 
 best_config = np.zeros([3])
 
+max = 5
 for i in range(0,max):
     for j in range(0,max):
         for k in range(0,6):
+            
+            #finds data for this configuration
             eff = power_plant(i+1,j+1,regen_epsilon[k],300,1400,100,9) 
             effs[i,j] = eff
             costs[i,j] = total_cost(i+1,j+1,regen_costs[k]) + life_cost(eff)
+            
+            #finds if this configuration is better
             if (cst_min> costs[i,j]):
                 cst_min = costs[i,j]
-                best_config={i,j,k}
+                best_config=[i,j,k]
                 print(i+1,"compressors",j+1,"turbines",regen_costs[k])
 
 
-print(costs)
-p1 = pyp.figure(1)  
-pyp.contour(costs,20)
-pyp.show()        
+temp_range = np.linspace(250,300,100,float)
+temp_sweep = []
+for i in range (0,100):
+    
+    eta =  power_plant(best_config[0]+1,best_config[1]+1,regen_epsilon[best_config[2]],
+                         temp_range[i],1400,100,9)
+    temp_sweep.append(eta)
+    
+pyp.plot(temp_sweep)
