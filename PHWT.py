@@ -8,7 +8,7 @@ Created on Sun Mar 25 12:10:55 2018
 
 import numpy as np
 import matplotlib.pyplot as pyp
-from iapws import IAPWS97
+
 
 
 
@@ -21,16 +21,15 @@ from iapws import IAPWS97
 #        effect = e
 #        ratio = effect/cost
 
-#effects = np.array([0.3,0.4,0.5],
-#                   [10, 20, 30],
-#                   [0,0,0])
-Cp = 1.004                          #Specific heat 
-Cv= 0.8                     
-k = 1.4                             #Specific heat ratio
+
+                            #Specific heat ratio
 cst_trbn= 1100000                   #Cost of turbine
 cst_no_compressor  = 400000        #Cost of compressor 
 cst_reheater =  1   
 
+
+regen_epsilon = [0.5,0.7,0.8,0.9,0.96,0.98]
+regen_costs =   [2200000,2500000,3100000,4000000,5200000,6700000]
  
 #no_comp: number of no_compressors
 #no_turb: number of no_turbines
@@ -41,16 +40,17 @@ cst_reheater =  1
 #Pr = 9.0                        #Pr = pressure ratio
 #P1 = 100.0
 def power_plant(no_comp, no_turb, rgn_ep,t1,t3,P1,Pr):
-    
+    Cp = 1.004                          #Specific heat                    
+    k = 1.4 
+
     #fluid = IAPWS97(T = 0, P = 2)
     P = []
     T = []
     win = 0 
-    
+
     
     # runs through each of the stages of the no_compression
     Prs  = Pr ** ( 1.0/ no_comp)    #Prs: pressure ratio for individual stages
-    
                  
     #first compression stage
     t2 = (Prs)**((k-1.0)/k) * t1       #t2: tempature 2
@@ -79,7 +79,6 @@ def power_plant(no_comp, no_turb, rgn_ep,t1,t3,P1,Pr):
             P.append(p)
             
             
-    print(win)
     # find qin from inital heat addition
     qin = (t3 - t2) * Cp            #qin: heat input 
 
@@ -111,7 +110,7 @@ def power_plant(no_comp, no_turb, rgn_ep,t1,t3,P1,Pr):
             p = p/Prs
             P.append(p)
 
-    print(wout)
+    #print(wout)
     
     #find heat regained from regenerator
     q_regenable = (t4-t2)*Cp        # q_regnenable: heat able to be regenerated
@@ -121,15 +120,18 @@ def power_plant(no_comp, no_turb, rgn_ep,t1,t3,P1,Pr):
     #accounts for heat regenerated 
     qin = qin - q_regen
     #find net work 
+    #pyp.plot(T,P)
     nwout = wout - win 
     
     
     #print(nwout)
 #   print(win)
     #print(qin)
-    output = (nwout/qin)
-    pyp.plot(T,P)
+    
+    output = float(nwout/qin)
+    #pyp.plot(T,P)
     #print()
+    
     return output
     
 def total_cost(no_comp, no_turb, regencost):
@@ -148,24 +150,35 @@ def life_cost(eta_th):
     return fuel_cost
 
 
-max = 4
+max = 5
 levels =  [0,1,2,3,4,5]
 #print(power_plant(1.0,1.0,0.81))
 
-#effs = np.zeros([max,max])
-#costs = np.zeros([max,max])
-#for i in range(0,max):
-#    for j in range(0,max):
-#        effs[i,j] = power_plant(i+1,j+1,0.6)
-#        costs[i,j] = total_cost(i+1,j+1,5000.0) + life_cost(effs[i,j])
+effs = np.zeros([max,max],dtype=float)
+costs = np.zeros([max,max],dtype = float )
+#for i in range(1,max):
+#    for j in range(1,max):
+#        effs[i,j] = power_plant(i,j,0.6,300.0,1400.0,100.0,9.0)
+#        
+#        costs[i,j] = total_cost(i,j,5000.0) + life_cost(effs[i,j])
 #     
+cst_min = 9000000000000000.0
 
-for i in range(1,max):
-    print(power_plant(i,i,0.7,300,1400,100,9))
+best_config = np.zeros([3])
+
+for i in range(0,max):
+    for j in range(0,max):
+        for k in range(0,6):
+            eff = power_plant(i+1,j+1,regen_epsilon[k],300,1400,100,9) 
+            effs[i,j] = eff
+            costs[i,j] = total_cost(i+1,j+1,regen_costs[k]) + life_cost(eff)
+            if (cst_min> costs[i,j]):
+                cst_min = costs[i,j]
+                best_config={i,j,k}
+                print(i+1,"compressors",j+1,"turbines",regen_costs[k])
 
 
-#p1 = pyp.figure(1)
-#pyp.contourf(effs, 100)
-
-        
-        
+print(costs)
+p1 = pyp.figure(1)  
+pyp.contour(costs,20)
+pyp.show()        
