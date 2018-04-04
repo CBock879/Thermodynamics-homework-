@@ -12,17 +12,6 @@ import matplotlib.pyplot as pyp
 
 
 
-#class regen:
-#    cost = 100
-#    effect = 0.9
-#    ratio = 0.8
-#    def __init__(self,c,e):
-#        cost = c
-#        effect = e
-#        ratio = effect/cost
-
-
-
 
 regen_epsilon = [0.5,0.7,0.8,0.9,0.96,0.98]
 regen_costs =   [2200000,2500000,3100000,4000000,5200000,6700000]
@@ -30,16 +19,11 @@ regen_costs =   [2200000,2500000,3100000,4000000,5200000,6700000]
 #no_comp: number of no_compressors
 #no_turb: number of no_turbines
 #rgn_ep regenerator epsilon ( effectivnes)
-
-#t1 = 27.0 + 273.13                #t1 = temperature 1
-#t3 = 1150.0 + 273.13            #t3: temperature 3
-#Pr = 9.0                        #Pr = pressure ratio
-#P1 = 100.0
 def power_plant(no_comp, no_turb, rgn_ep,t1,t3,P1,Pr):
+    
+    
     Cp = 1.004                          #Specific heat                    
     k = 1.4 
-
-    #fluid = IAPWS97(T = 0, P = 2)
     P = []
     T = []
     win = 0 
@@ -105,9 +89,7 @@ def power_plant(no_comp, no_turb, rgn_ep,t1,t3,P1,Pr):
             P.append(p)
             p = p/Prs
             P.append(p)
-
-    #print(wout)
-    
+            
     #find heat regained from regenerator
     q_regenable = (t4-t2)*Cp        # q_regnenable: heat able to be regenerated
     q_regen = q_regenable*rgn_ep    # q_regen: heat regenerated
@@ -174,7 +156,7 @@ for i in range(0,max):
                 print(i+1,"compressors",j+1,"turbines",regen_costs[k])
 
 
-temp_range = np.linspace(250,300,100,float)
+temp_range = np.linspace(250,500,100,float)
 temp_sweep = []
 for i in range (0,100):
     
