@@ -8,17 +8,18 @@ Created on Sun Mar 25 12:10:55 2018
 
 import numpy as np
 import matplotlib.pyplot as pyp
-import sympy 
-import PPTools
-from mpl_toolkits.mplot3d import Axes3D
+import PPTools as PPT
+
+
 
 
 
 K = lambda C: C+273.15
+
 outside_temp = 27
 regen_epsilon = [0.5,0.7,0.8,0.9,0.96,0.98]
 regen_costs =   [2200000,2500000,3100000,4000000,5200000,6700000]
-
+heat_per_unit = 52200000.0
  
 
 
@@ -38,7 +39,7 @@ def life_cost(eta_th):
     
     #fuel properties
     fuel_cost_per_unit = 0.28
-    heat_per_unit = 52200000.0
+   
     
     #finds total lifetime fuel cost of power plant
     total_life_heat =  total_life_power/eta_th
@@ -48,42 +49,71 @@ def life_cost(eta_th):
 
 
 #Part A
-
+print()
 for i in range (1,5):
-    part_A  = []
-    for j in range(0,6):
-        eff = power_plant(i,i,regen_epsilon[j],300,K(1150),100,9)
-        part_A.append(eff)  
-    
-    pyp.plot(regen_epsilon,part_A)
-pyp.legend('1234')   
+    epsilon_sweep = np.linspace(0,1,200)
+    eff = PPT.power_plant(i,i,epsilon_sweep,300,K(1150),100,9)
+    pyp.plot(epsilon_sweep, eff)
+pyp.legend('4321')   
+pyp.xlabel('regenerator effectiveness')
+pyp.ylabel('efficency')
 pyp.show()
-
-
+#
+#
 #part B
 max = 5
-effs = np.zeros([max,max,6],dtype=float)
-costs = np.zeros([max,max,6],dtype = float )
+effs = np.zeros([max,6])
+costs = np.zeros([max,6]) 
+print()
 cst_min = 9000000000000000.0
-best_config = np.zeros([3]) 
+best_stages = 0 
+best_rgn = 0
 for i in range(0,max):
-    for j in range(0,max):
-        for k in range(0,6):
-            
+        for k in range(1,5):
             #finds data for this configuration
-            eff = power_plant(i+1,j+1,regen_epsilon[k],300,1400,100,9) 
-            effs[i,j,k] = eff
-            costs[i,j,k] = total_cost(i+1,j+1,regen_costs[k]) + life_cost(eff)
+            eff = PPT.power_plant(i+1,i+1,regen_epsilon[k],300,K(1150),100,9) 
+            effs[i,k] = eff
+            costs[i,k] = total_cost(i+1,i+1,regen_costs[k]) + life_cost(eff)
+            print (eff)
             #finds if this configuration is better
-            if (cst_min> costs[i,j,k]):
-                cst_min = costs[i,j,k]
-                best_config=[i,j,k]
-                print(i+1,"compressors",j+1,"turbines",regen_costs[k])
+            
+            if (cst_min > costs[i,k]):
+                cst_min = costs[i,k]
+                best_stages = i+1
+                best_rgn = k
+                print(eff)
+                print ("test",i)
+
+                
+#
+eta_TH = PPT.power_plant(best_stages,best_stages,
+                         regen_epsilon[best_rgn],300,K(1150),100,9)
+print("eta" ,eta_TH)
+
+#calculates mass flow
+mass_flow = (((5 * 10**6)/eta_TH)/heat_per_unit)
+print("mass flow of best configuration",mass_flow)
 
 
 
-
-#temp_range = np.linspace(250,500,100)
+#max = 5
+#effs = np.zeros([max,max,6],dtype=float)
+#costs = np.zeros([max,max,6],dtype = float )
+#cst_min = 9000000000000000.0
+#best_config = np.zeros([3]) 
+#for i in range(0,max):
+#        for k in range(0,6):
+#            
+#            #finds data for this configuration
+#            eff = PPT.power_plant(i+1,j+1,regen_epsilon[k],300,K(1150),100,9) 
+#            effs[i,j,k] = eff
+#            costs[i,j,k] = total_cost(i+1,j+1,regen_costs[k]) + life_cost(eff)
+#            #finds if this configuration is better
+#            if (cst_min> costs[i,j,k]):
+#                cst_min = costs[i,j,k]
+#                best_config=[i+1,j+1,k]
+#                print(i+1,"compressors",j+1,"turbines",regen_costs[k])
+##temp_range = np.linspace(250,500,100)
 #temp_sweep = []
 #for i in range (0,100):
 #    eta =  power_plant(best_config[0]+1,best_config[1]+1,regen_epsilon[best_config[2]],
@@ -92,7 +122,6 @@ for i in range(0,max):
 #
 #temp_diff = np.diff(temp_sweep)
 #    
-
 
 #pyp.ylabel(r'$\eta_{th}$')
 #pyp.xlabel("Outside Temperature (K)")
