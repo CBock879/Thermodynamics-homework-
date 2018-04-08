@@ -48,52 +48,92 @@ def life_cost(eta_th):
 
 
 
+
 #Part A
 print()
 for i in range (1,5):
     epsilon_sweep = np.linspace(0,1,200)
     eff = PPT.power_plant(i,i,epsilon_sweep,300,K(1150),100,9)
+    fuel_cost = life_cost(eff)
+    print(fuel_cost)
+    pyp.legend('4321')   
+    pyp.xlabel('regenerator effectiveness')
+    pyp.subplot(211)
+    pyp.xticks([])
+    pyp.ylabel('efficency')
+    
     pyp.plot(epsilon_sweep, eff)
-pyp.legend('4321')   
-pyp.xlabel('regenerator effectiveness')
-pyp.ylabel('efficency')
+    pyp.subplot(212)
+    pyp.ylabel('cost')
+    pyp.plot(epsilon_sweep,fuel_cost)
+    
+    
+
+
 pyp.show()
+
 #
-#
+
 #part B
 max = 5
 effs = np.zeros([max,6])
 costs = np.zeros([max,6]) 
-print()
-cst_min = 9000000000000000.0
-best_stages = 0 
-best_rgn = 0
+cst_min = 9000000000000000.0 
+regen_cost = 0
+best_config = PPT.PPlant(1,1,0,300,1000,100,9)
+
 for i in range(0,max):
         for k in range(1,5):
+            
             #finds data for this configuration
             eff = PPT.power_plant(i+1,i+1,regen_epsilon[k],300,K(1150),100,9) 
             effs[i,k] = eff
             costs[i,k] = total_cost(i+1,i+1,regen_costs[k]) + life_cost(eff)
-            print (eff)
-            #finds if this configuration is better
             
-            if (cst_min > costs[i,k]):
+            
+            #finds if this configuration is better
+            if (cst_min > costs[i,k]):  
+                best_config = PPT.PPlant(i+1,i+1,regen_epsilon[k],300,K(1150),100,9)
                 cst_min = costs[i,k]
-                best_stages = i+1
-                best_rgn = k
-                print(eff)
-                print ("test",i)
+                regen_cost = regen_costs[k]
 
-                
-#
-eta_TH = PPT.power_plant(best_stages,best_stages,
-                         regen_epsilon[best_rgn],300,K(1150),100,9)
-print("eta" ,eta_TH)
 
-#calculates mass flow
-mass_flow = (((5 * 10**6)/eta_TH)/heat_per_unit)
-print("mass flow of best configuration",mass_flow)
+#gets efficency
+print('Thermal efficency of best configuration', best_config.eta)
+         
+print()
 
+#prints outlet states       
+best_config.outlet_states()
+
+print()
+
+#prints net work
+print('Net specific work of cycle',best_config.nwork)
+
+#prints back work ratio
+print('Back work ratio' , best_config.back_work_ratio)
+
+
+#calculates air flow
+mass_flow = best_config.air_flow(4000000)
+print("Air flow of best configuration",mass_flow, 'kg/s')
+
+#heat input
+print('rate of heat input', best_config.nq, 'kJ/kg')
+
+#calculated fuel consumption
+mass_flow = best_config.fuel_flow(heat_per_unit,4000000)
+print("Fuel flow of best configuration",mass_flow)
+
+#gets total lifetime fuel cost
+print('total fuel cost over 20 years',life_cost(best_config.eta))
+
+#gets total equipment cost
+print('total equipment cost', best_config.equipement_cost(regen_cost))
+
+#gets cost of best configuration
+print('Total cost of best configuration: $', (cst_min))
 
 
 #max = 5
