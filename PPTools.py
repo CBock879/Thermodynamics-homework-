@@ -110,11 +110,13 @@ class PPlant:
     eta  = 0
     compressors = 0
     turbines = 0
+    epsilon   = 0
 
     def __init__(self,no_comp, no_turb, rgn_ep,t1,t3,P1,Pr):
         
         self.P = []
         self.T = []
+        self.epsilon = rgn_ep
         Cp = 1.004                          #Specific heat                    
         k = 1.4 
         # runs through each of the stages of the no_compression

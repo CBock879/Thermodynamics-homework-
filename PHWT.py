@@ -47,7 +47,7 @@ def life_cost(eta_th):
     return fuel_cost
 
 
-
+fig1 = pyp.figure(1)
 
 #Part A
 print()
@@ -56,6 +56,7 @@ for i in range (1,5):
     eff = PPT.power_plant(i,i,epsilon_sweep,300,K(1150),100,9)
     fuel_cost = life_cost(eff)
     print(fuel_cost)
+    
     pyp.legend('4321')   
     pyp.xlabel('regenerator effectiveness')
     pyp.subplot(211)
@@ -70,14 +71,12 @@ for i in range (1,5):
     
 
 
-pyp.show()
+fig1.show()
 
 #
 
 #part B
 max = 5
-effs = np.zeros([max,6])
-costs = np.zeros([max,6]) 
 cst_min = 9000000000000000.0 
 regen_cost = 0
 best_config = PPT.PPlant(1,1,0,300,1000,100,9)
@@ -87,14 +86,13 @@ for i in range(0,max):
             
             #finds data for this configuration
             eff = PPT.power_plant(i+1,i+1,regen_epsilon[k],300,K(1150),100,9) 
-            effs[i,k] = eff
-            costs[i,k] = total_cost(i+1,i+1,regen_costs[k]) + life_cost(eff)
+            cost = total_cost(i+1,i+1,regen_costs[k]) + life_cost(eff)
             
             
             #finds if this configuration is better
-            if (cst_min > costs[i,k]):  
+            if (cst_min > cost):  
                 best_config = PPT.PPlant(i+1,i+1,regen_epsilon[k],300,K(1150),100,9)
-                cst_min = costs[i,k]
+                cst_min = cost
                 regen_cost = regen_costs[k]
 
 
@@ -135,6 +133,20 @@ print('total equipment cost', best_config.equipement_cost(regen_cost))
 #gets cost of best configuration
 print('Total cost of best configuration: $', (cst_min))
 
+comps  = best_config.compressors
+turbs  = best_config.turbines
+
+temp_range = np.linspace(-30,40,100)
+epsilon = best_config.epsilon
+eta_range = PPT.power_plant(comps,turbs,epsilon,K(temp_range),K(1150),100,9)
+
+fig2 = pyp.figure(2)
+pyp.plot(temp_range,eta_range)
+pyp.title('Tempature vs $\eta_{th}$')
+pyp.xlabel('Temperature (deg C)')
+pyp.ylabel('$\eta_{th}$')
+fig2.show()
+
 
 #max = 5
 #effs = np.zeros([max,max,6],dtype=float)
@@ -153,15 +165,7 @@ print('Total cost of best configuration: $', (cst_min))
 #                cst_min = costs[i,j,k]
 #                best_config=[i+1,j+1,k]
 #                print(i+1,"compressors",j+1,"turbines",regen_costs[k])
-##temp_range = np.linspace(250,500,100)
-#temp_sweep = []
-#for i in range (0,100):
-#    eta =  power_plant(best_config[0]+1,best_config[1]+1,regen_epsilon[best_config[2]],
-#                         temp_range[i],1400,100,9)
-#    temp_sweep.append(eta)
-#
-#temp_diff = np.diff(temp_sweep)
-#    
+
 
 #pyp.ylabel(r'$\eta_{th}$')
 #pyp.xlabel("Outside Temperature (K)")
