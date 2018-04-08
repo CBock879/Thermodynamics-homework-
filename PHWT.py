@@ -97,6 +97,9 @@ for i in range(0,max):
                 regen_cost = regen_costs[k]
 
 
+print('best config', best_config.compressors, "compressors",
+      best_config.turbines, "turbines", + best_config.epsilon , 'regenerator')
+
 #gets efficency
 print('Thermal efficency of best configuration', best_config.eta)
          
@@ -187,7 +190,8 @@ print('Thermal efficency of best configuration', best_config.eta)
 print()
 
 print('best config', best_config.compressors, "compressors",
-      best_config.turbines, "turbines")
+      best_config.turbines, "turbines", + best_config.epsilon , 'regenerator')
+
 
 #prints outlet states       
 best_config.outlet_states()
